@@ -76,21 +76,18 @@
                     const date = cols[5] ? cols[5].replace(/"/g, '') : '-';
                     const statusRaw = cols[6] ? cols[6].trim() : 'Pending';
                     
-                    let statusText = "قيد الشحن / الانتظار";
-                    let statusClass = "text-yellow-500";
-                    if (statusRaw === 'Delivered') {
-                        statusText = "تم التوصيل";
-                        statusClass = "text-green-500";
-                    }
+                    // تعريب الحالات
+                    let statusText = (statusRaw === 'Delivered') ? "تم التوصيل" : "قيد الشحن والانتظار";
+                    let statusClass = (statusRaw === 'Delivered') ? "text-green-500" : "text-yellow-500";
 
                     html += `
                     <div class="glass p-5 rounded-2xl border border-neutral-800 space-y-3">
                         <div class="flex flex-col gap-1 border-b border-neutral-800 pb-2">
-                            <span class="text-neutral-500 text-xs">الطلب</span>
+                            <span class="text-neutral-500 text-xs">الطلب:</span>
                             <span class="font-bold text-lg">${article}</span>
                         </div>
                         <div class="flex flex-col gap-1">
-                            <span class="text-neutral-500 text-xs">الايدي / النص</span>
+                            <span class="text-neutral-500 text-xs">الايدي أو النص:</span>
                             <span class="font-bold">${message}</span>
                         </div>
                         <div class="flex justify-between text-sm">
@@ -98,7 +95,7 @@
                             <div><span class="text-neutral-500">التاريخ:</span> ${date}</div>
                         </div>
                         <div class="pt-2">
-                            <span class="text-neutral-500 text-xs">حالة الطلب</span>
+                            <span class="text-neutral-500 text-xs">الحالة:</span>
                             <div class="${statusClass} font-bold text-lg">● ${statusText}</div>
                         </div>
                         <div class="mt-4">
