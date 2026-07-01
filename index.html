@@ -61,28 +61,35 @@
         try {
             const response = await fetch('data.csv');
             const data = await response.text();
-            const rows = data.split('\n');
+            const rows = data.split('\n').slice(1);
             let html = '';
 
             rows.forEach(row => {
                 const cols = row.split(',');
-                // تطابق دقيق لليوزر في العمود الأول
-             if (cols[0] && cols[0].trim().toLowerCase() === user.toLowerCase()) {
-                    const orderName = cols[1] ? cols[1].trim() : 'طلب';
-                    const status = cols[2] ? cols[2].trim() : 'قيد الشحن';
-
+                if (cols[0] && cols[0].trim().toLowerCase() === user.toLowerCase()) {
+                    const article = cols[1] || '-';
+                    const message = cols[2] || 'لا يوجد';
+                    const price = cols[3] || '0';
+                    const currency = cols[4] || '';
+                    const date = cols[5] || '-';
+                    const status = cols[6] || 'Pending';
+                    
                     html += `
-                        <div class="glass p-5 rounded-2xl flex justify-between items-center">
-                            <div>
-                                <h3 class="font-bold text-lg">${orderName}</h3>
-                                <span class="text-xs ${status === 'قيد الشحن' ? 'text-yellow-500' : 'text-green-500'}">${status}</span>
+                        <div class="glass p-5 rounded-2xl border border-neutral-800">
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div><span class="text-neutral-500">الطلب:</span><br><span class="font-bold">${article}</span></div>
+                                <div><span class="text-neutral-500">السعر:</span><br><span class="font-bold">${price} ${currency}</span></div>
+                                <div><span class="text-neutral-500">التاريخ:</span><br><span class="font-bold">${date}</span></div>
+                                <div><span class="text-neutral-500">الايدي/النص:</span><br><span class="font-bold">${message}</span></div>
+                                <div class="col-span-2"><span class="text-neutral-500">الحالة:</span><br>
+                                    <span class="${status.trim() === 'Pending' ? 'text-yellow-500' : 'text-green-500'} font-bold">${status}</span>
+                                </div>
                             </div>
-                            <div class="flex gap-2">
-                                ${status === 'قيد الشحن' ? `
-                                    <button onclick="handleAction('استعجال', '${orderName}')" class="bg-blue-900 px-4 py-2 rounded-lg text-xs">استعجال</button>
-                                    <button onclick="handleAction('تعديل', '${orderName}')" class="bg-yellow-900 px-4 py-2 rounded-lg text-xs">تعديل</button>
-                                    <button onclick="handleAction('إلغاء', '${orderName}')" class="bg-red-900 px-4 py-2 rounded-lg text-xs">إلغاء</button>
-                                ` : `<button onclick="handleAction('تقييم', '${orderName}')" class="bg-purple-900 px-4 py-2 rounded-lg text-xs">⭐ تقييم</button>`}
+                            <div class="mt-4 flex gap-2">
+                                ${status.trim() === 'Pending' ? `
+                                    <button onclick="handleAction('استعجال', '${article}')" class="flex-1 bg-blue-900 py-2 rounded-lg text-xs">استعجال</button>
+                                    <button onclick="handleAction('إلغاء', '${article}')" class="flex-1 bg-red-900 py-2 rounded-lg text-xs">إلغاء</button>
+                                ` : `<button onclick="handleAction('تقييم', '${article}')" class="w-full bg-purple-900 py-2 rounded-lg text-xs">⭐ تقييم</button>`}
                             </div>
                         </div>`;
                 }
