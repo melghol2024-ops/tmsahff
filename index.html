@@ -2,36 +2,39 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; }
-        .glass { background: rgba(20, 20, 20, 0.9); border: 1px solid #333; backdrop-filter: blur(10px); }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+        body { font-family: 'Cairo', sans-serif; background: #050505; color: #fff; }
+        .glass { background: rgba(18, 18, 18, 0.95); border: 1px solid #333; backdrop-filter: blur(15px); }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 999; justify-content: center; align-items: center; }
+        .animate-pop { animation: pop 0.3s ease-out; }
+        @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
-<body class="p-6">
+<body class="p-4 md:p-10">
 
-<div class="max-w-4xl mx-auto">
+<div class="max-w-5xl mx-auto">
     <div class="glass p-8 rounded-3xl mb-8 text-center border-b-4 border-pink-600">
         <h1 class="text-4xl font-black">TMSAHFF STORE</h1>
-        <p class="text-neutral-500 mt-2">مركز تتبع الطلبات الذكي</p>
+        <p class="text-neutral-400">تتبع طلباتك بدقة واحترافية</p>
     </div>
 
-    <div class="flex gap-2 mb-8">
-        <input type="text" id="userInput" placeholder="أدخل اليوزر للبحث..." class="flex-1 bg-neutral-900 p-4 rounded-xl border border-neutral-800 focus:border-pink-500 outline-none">
-        <button onclick="search()" class="bg-pink-600 px-8 rounded-xl font-bold hover:bg-pink-700">بحث</button>
+    <div class="glass p-2 rounded-2xl flex mb-8">
+        <input type="text" id="userInput" placeholder="أدخل اليوزر للبحث..." class="flex-1 bg-transparent p-4 outline-none">
+        <button onclick="search()" class="bg-pink-600 px-8 py-4 rounded-xl font-bold hover:bg-pink-700 transition">بحث</button>
     </div>
 
     <div id="results" class="space-y-4"></div>
 </div>
 
 <div id="modal" class="modal">
-    <div class="glass p-8 rounded-3xl w-96 text-center border border-pink-500/30">
-        <i class="fas fa-question-circle text-4xl text-pink-500 mb-4"></i>
-        <h2 id="modalTitle" class="text-xl font-bold mb-4">تأكيد الإجراء</h2>
-        <div class="flex gap-2 justify-center">
-            <button onclick="hideModal()" class="px-6 py-2 bg-neutral-800 rounded-xl">إلغاء</button>
+    <div class="glass p-8 rounded-3xl w-96 text-center animate-pop border border-pink-500/30">
+        <h2 id="modalTitle" class="text-xl font-bold mb-6">تأكيد الإجراء</h2>
+        <div class="flex gap-3 justify-center">
+            <button onclick="closeModal()" class="px-6 py-2 bg-neutral-800 rounded-xl">إلغاء</button>
             <button id="confirmBtn" class="px-6 py-2 bg-pink-600 rounded-xl font-bold">تأكيد</button>
         </div>
     </div>
@@ -43,46 +46,51 @@
     async function search() {
         const user = document.getElementById('userInput').value.trim().toLowerCase();
         const resDiv = document.getElementById('results');
-        
         try {
             const res = await fetch('data.csv');
             const data = await res.text();
             const rows = data.split('\n');
-            let html = '';
+            let html = `<div class="glass p-4 rounded-xl grid grid-cols-5 text-neutral-500 text-sm text-center font-bold">
+                <span>الطلب</span><span>السعر</span><span>التاريخ</span><span>الحالة</span><span>إجراءات</span>
+            </div>`;
             
+            let found = false;
             rows.forEach((row, i) => {
                 if(i === 0 || !row.toLowerCase().includes(user)) return;
-                
-                const isDelivered = row.toLowerCase().includes('delivered');
+                found = true;
                 const cols = row.split(',');
+                // ذكاء اصطناعي: التحقق من الحالة في أي مكان بالسطر
+                const isDelivered = row.toLowerCase().includes('delivered');
                 
                 html += `
-                <div class="glass p-5 rounded-2xl flex justify-between items-center hover:border-pink-500/50 transition">
-                    <div>
-                        <h3 class="font-bold text-lg">${cols[1] || 'طلب'}</h3>
-                        <p class="text-xs text-neutral-500">${cols[5] || 'لا يوجد تاريخ'}</p>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <span class="font-bold ${isDelivered ? 'text-green-500' : 'text-yellow-500'}">
-                            ${isDelivered ? 'تم التوصيل' : 'قيد الشحن'}
-                        </span>
-                        <button onclick="showModal('${cols[1]}')" class="text-sm bg-neutral-800 px-3 py-1 rounded-lg hover:bg-neutral-700">إجراء</button>
+                <div class="glass p-5 rounded-2xl grid grid-cols-5 text-center items-center gap-2 hover:border-pink-500 transition">
+                    <span class="font-bold text-pink-400">${cols[1] || '---'}</span>
+                    <span>${cols[3] || '0'}</span>
+                    <span class="text-xs text-neutral-400">${cols[5] || '---'}</span>
+                    <span class="font-bold ${isDelivered ? 'text-green-500' : 'text-yellow-500'}">
+                        ${isDelivered ? '✅ تم التوصيل' : '⏳ قيد الشحن'}
+                    </span>
+                    <div class="flex gap-1 justify-center">
+                        <button onclick="showAction('استعجال', '${cols[1]}')" class="bg-blue-900 px-2 py-1 rounded text-xs text-blue-200">استعجال</button>
+                        <button onclick="showAction('تقييم', '${cols[1]}')" class="bg-yellow-900 px-2 py-1 rounded text-xs text-yellow-200">⭐</button>
                     </div>
                 </div>`;
             });
-            resDiv.innerHTML = html || '<p class="text-center text-red-500">لا يوجد بيانات.</p>';
-        } catch(e) { console.error(e); }
+            resDiv.innerHTML = found ? html : '<p class="text-center text-red-500">لا يوجد طلبات لهذا الاسم!</p>';
+        } catch(e) { resDiv.innerHTML = '<p class="text-center text-red-500">خطأ في ملف الـ CSV!</p>'; }
     }
 
-    function showModal(order) {
+    function showAction(type, order) {
+        document.getElementById('modalTitle').innerText = 'تأكيد ' + type + ' للطلب ' + order;
         document.getElementById('modal').style.display = 'flex';
         document.getElementById('confirmBtn').onclick = () => {
-            fetch(WEBHOOK, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ content: `طلب: ${order}` }) });
-            hideModal();
+            fetch(WEBHOOK, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ content: `🔔 إجراء: ${type} | الطلب: ${order}` }) });
+            closeModal();
+            alert('تم تنفيذ طلبك بنجاح! ⭐');
         };
     }
     
-    function hideModal() { document.getElementById('modal').style.display = 'none'; }
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
 </script>
 </body>
 </html>
