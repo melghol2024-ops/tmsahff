@@ -1,103 +1,215 @@
 <!DOCTYPE html>
+
 <html lang="ar" dir="rtl">
+
 <head>
+
     <meta charset="UTF-8">
+
     <title>TMSAHFF STORE | النظام الاحترافي</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <style>
+
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        body { font-family: 'Cairo', sans-serif; background: #050505; color: #fff; }
+
+        body { font-family: 'Cairo', sans-serif; background: #050505; color: #fff; overflow-x: hidden; }
+
+        .bg-glow { background: radial-gradient(circle at top right, #1d030b, #050505); }
+
         .glass { background: rgba(20, 20, 20, 0.7); backdrop-filter: blur(15px); border: 1px solid #333; }
+
+        .kick-live { border: 1px solid #53fc18; box-shadow: 0 0 10px #53fc1866; animation: pulse 2s infinite; }
+
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(83, 252, 24, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(83, 252, 24, 0); } 100% { box-shadow: 0 0 0 0 rgba(83, 252, 24, 0); } }
+
+        .modal { display: none; position: fixed; inset: 0; background: #000d; z-index: 50; align-items: center; justify-content: center; }
+
     </style>
+
 </head>
-<body class="bg-[#050505] min-h-screen p-4">
+
+<body class="bg-glow min-h-screen p-4 md:p-8">
+
+
 
 <div class="max-w-6xl mx-auto">
-    <div class="glass p-6 rounded-2xl flex gap-4 mb-8">
-        <input id="userInput" class="flex-1 bg-transparent p-3 outline-none text-white text-lg" placeholder="ابحث باسم اليوزر...">
-        <button onclick="search()" class="bg-pink-600 px-10 py-3 rounded-xl font-black">بحث</button>
+
+    <div class="glass rounded-3xl p-8 mb-8 text-center border-b-4 border-pink-600">
+
+        <div class="flex justify-center items-center gap-4 mb-4">
+
+            <img src="https://botrix.live/assets/logo.png" class="w-16 h-16 rounded-full border border-pink-500" alt="Botrix">
+
+            <h1 class="text-5xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">TMSAHFF STORE</h1>
+
+        </div>
+
+        <div class="flex flex-wrap gap-8 justify-center mt-8 text-2xl">
+
+            <a href="https://kick.com/tmsahff" class="kick-live flex items-center gap-2 bg-black px-5 py-2 rounded-full text-[#53fc18]"><i class="fas fa-tv"></i> <span>KICK LIVE</span></a>
+
+            <a href="https://tiktok.com/@tmsahfreefire" class="hover:text-white transition"><i class="fab fa-tiktok"></i> تيك توك</a>
+
+            <a href="https://wa.me/201010247318" class="hover:text-green-500 transition"><i class="fab fa-whatsapp"></i> واتساب</a>
+
+            <a href="https://instagram.com/tmsahtv" class="hover:text-pink-400 transition"><i class="fab fa-instagram"></i> انستجرام</a>
+
+        </div>
+
     </div>
 
-    <div class="glass overflow-x-auto rounded-2xl">
-        <table class="w-full text-right">
-            <tbody id="results"></tbody>
-        </table>
+
+
+    <div class="glass p-6 rounded-2xl flex gap-4 mb-8 border border-neutral-800">
+
+        <input id="userInput" class="flex-1 bg-transparent p-3 outline-none text-white text-lg" placeholder=" ااكتب اسم يوزر الكيك ">
+
+        <button onclick="search()" class="bg-pink-600 px-10 py-3 rounded-xl font-black hover:bg-pink-700 transition">بحث</button>
+
     </div>
+
+
+
+    <div class="glass overflow-x-auto rounded-2xl border border-neutral-800">
+
+        <table class="w-full text-right border-collapse">
+
+            <thead>
+
+                <tr class="text-neutral-500 border-b border-neutral-800 text-sm">
+
+                    <th class="p-6">اليوزر</th>
+
+                    <th class="p-6">الطلب</th>
+
+                    <th class="p-6">التاريخ</th>
+
+                    <th class="p-6">الحالة</th>
+
+                    <th class="p-6">إجراءات</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="results"></tbody>
+
+        </table>
+
+    </div>
+
 </div>
 
+
+
 <script>
-    // ضع رابط الويب هوك المباشر الخاص بك هنا
+
     const WEBHOOK = "https://discord.com/api/webhooks/1521713795477667860/Ma3vk6FfyfXCCdYBLE_EMg679hFg2w8nJR4DKTKTtbdwZjMgs1H6WoKYQgRLMH4nMKi5";
 
+
+
     async function search() {
+
         const query = document.getElementById('userInput').value.trim().toLowerCase();
+
         const res = document.getElementById('results');
+
+        if (!query) return;
+
         
+
         try {
-            // استخدام ./ للبحث في نفس مجلد ملف الـ HTML
-            const response = await fetch('./data.csv?nocache=' + new Date().getTime());
-            if (!response.ok) throw new Error("لا يمكن العثور على الملف");
-            
+
+            const response = await fetch('data.csv');
+
             const text = await response.text();
+
             const rows = text.split(/\r?\n/).slice(1);
+
             let html = '';
 
+
+
             rows.forEach(row => {
-                const cols = row.split(',');
-                if (cols.length < 7) return;
+
+                const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+
+                if (!cols) return;
+
+                const userInRow = cols[0].replace(/"/g, '').trim();
+
                 
-                const user = cols[0].replace(/"/g, '').trim();
-                if (user.toLowerCase().includes(query)) {
-                    const article = cols[1];
-                    const date = cols[5];
-                    const status = cols[6]?.trim();
-                    const id = btoa(user + article);
+
+                // بحث عام يحتوي على الحروف المدخلة
+
+                if (userInRow.toLowerCase().includes(query)) {
+
+                    const article = cols[1]?.replace(/"/g, '');
+
+                    const date = cols[5]?.replace(/"/g, '') || '-';
+
+                    const statusRaw = cols[6]?.trim();
+
+                    const status = statusRaw === 'Delivered' ? '✅ تم التوصيل' : '⏳ قيد الشحن';
+
+
 
                     html += `
-                    <tr class="border-b border-neutral-800">
-                        <td class="p-6 text-pink-400 font-bold">${user}</td>
-                        <td class="p-6">${article}</td>
-                        <td class="p-6 text-neutral-400">${date}</td>
-                        <td class="p-6 font-bold ${status === 'Delivered' ? 'text-green-500' : 'text-yellow-500'}">
-                            ${status === 'Delivered' ? '✅ تم التوصيل' : '⏳ قيد الشحن'}
+
+                    <tr class="border-b border-neutral-800 hover:bg-white/5 transition">
+
+                        <td class="p-6 font-bold text-pink-400">${userInRow}</td>
+
+                        <td class="p-6 font-bold">${article}</td>
+
+                        <td class="p-6 text-sm text-neutral-400">${date}</td>
+
+                        <td class="p-6 ${statusRaw === 'Delivered' ? 'text-green-500' : 'text-yellow-500'} font-bold">${status}</td>
+
+                        <td class="p-6 flex gap-2">
+
+                            ${statusRaw === 'Pending' ? `
+
+                                <button onclick="sendAction('استعجال', '${article}', '${userInRow}')" class="bg-blue-900/80 px-3 py-1 rounded text-xs">استعجال</button>
+
+                                <button onclick="sendAction('إلغاء', '${article}', '${userInRow}')" class="bg-red-900/80 px-3 py-1 rounded text-xs">إلغاء</button>
+
+                            ` : `<button onclick="alert('تم تقييم التجربة، شكراً لك! ⭐')" class="bg-purple-900/80 px-4 py-1 rounded text-xs">⭐ تقييم</button>`}
+
                         </td>
-                        <td class="p-6">
-                            ${status === 'Pending' ? `
-                                <button onclick="handleAction('استعجال', '${article}', '${user}', '${id}')" class="bg-blue-900 px-3 py-1 rounded text-xs">استعجال</button>
-                                <button onclick="handleAction('إلغاء', '${article}', '${user}', '${id}')" class="bg-red-900 px-3 py-1 rounded text-xs">إلغاء</button>
-                            ` : '⭐ تم التقييم'}
-                        </td>
+
                     </tr>`;
+
                 }
+
             });
-            res.innerHTML = html || '<tr><td colspan="5" class="text-center p-10 text-red-500">لا توجد نتائج</td></tr>';
-        } catch (e) { alert("خطأ في تحميل ملف البيانات: " + e.message); }
+
+            res.innerHTML = html || '<tr><td colspan="5" class="p-10 text-center text-red-500">لا يوجد مستخدم بهذا الاسم</td></tr>';
+
+        } catch (e) { alert("خطأ في تحميل ملف البيانات"); }
+
     }
 
-    async function handleAction(type, order, user, id) {
-        if (type === 'إلغاء' && !confirm("هل تريد إلغاء الطلب واسترجاع نقاطك؟")) return;
 
-        // التحقق من الوقت (ساعة واحدة)
-        const last = localStorage.getItem(id);
-        if (last && (Date.now() - last < 3600000)) {
-            alert("⚠️ يجب الانتظار ساعة قبل تكرار الإجراء!");
-            return;
-        }
 
-        const payload = { content: `🔔 طلب ${type} | اليوزر: ${user} | الطلب: ${order}` };
-        
-        try {
-            await fetch(WEBHOOK, { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify(payload),
-                mode: 'no-cors' // حل لمشكلة منع الإرسال
-            });
-            localStorage.setItem(id, Date.now());
-            alert("تم إرسال الطلب للإدارة!");
-        } catch (e) { alert("حدث خطأ أثناء الإرسال!"); }
+    async function sendAction(type, order, user) {
+
+        if (type === 'تقييم') return; 
+
+        const payload = { embeds: [{ title: `🔔 إجراء: ${type}`, fields: [{ name: "اليوزر", value: user }, { name: "الطلب", value: order }] }] };
+
+        await fetch(WEBHOOK, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+
+        alert("تم إرسال طلب " + type + " للإدارة!");
+
     }
+
 </script>
+
 </body>
+
 </html>
